@@ -15,6 +15,7 @@ function App() {
   const [closedVoicing, setClosedVoicing] = useState(false)
   const [lastChordFrequencies, setLastChordFrequencies] = useState<number[]>([])
   const [waveformType, setWaveformType] = useState<OscillatorType>('sine')
+  const [showExplanation, setShowExplanation] = useState(false)
 
   // 音名順に並べる
   const roots = [
@@ -484,24 +485,6 @@ function App() {
       <div style={{ marginBottom: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
         <h3>Cush Chords (モーダル・インターチェンジ)</h3>
 
-        {/* 利用方法 */}
-        <div style={{
-          marginBottom: '15px',
-          padding: '12px',
-          background: '#e3f2fd',
-          borderRadius: '4px',
-          fontSize: '13px',
-          lineHeight: '1.6'
-        }}>
-          <strong>使い方:</strong>
-          <ol style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
-            <li>モードを選択して親スケールを決定</li>
-            <li>トニック（C）から開始</li>
-            <li>コードをクリックすると、次につながりの良いコードが赤いボーダーでハイライトされます</li>
-            <li>ハイライトされたコードを選ぶと自然な進行が作れます</li>
-          </ol>
-        </div>
-
         {/* オプション */}
         <div style={{ marginBottom: '15px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -724,7 +707,197 @@ function App() {
         >
           クリア
         </button>
+
+        <button
+          onClick={() => setShowExplanation(true)}
+          style={{
+            padding: '12px 24px',
+            background: '#ffffff',
+            color: '#000',
+            border: '2px solid #333',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          Cush Chordsとは？
+        </button>
       </div>
+
+      {/* Cush Chords説明モーダル */}
+      {showExplanation && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowExplanation(false)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '8px',
+              padding: '30px',
+              maxWidth: '800px',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>Cush Chords（クッシュ・コード）とは</h2>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>概要</h3>
+              <p style={{ lineHeight: '1.8' }}>
+                「Cush Chords」は、<strong>モーダル・インターチェンジ（modal interchange）</strong>の手法の一つです。
+                トニック（I）をそのまま維持しながら、その他のコードを別の親キー（親スケール）から借用することで、
+                <strong>「馴染みながらも少し色付いた／幻想的な響き」</strong>のコード進行を作ります。
+              </p>
+            </section>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>基本的な仕組み</h3>
+              <ol style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
+                <li><strong>トニック（C）を固定</strong> - 常にCメジャーまたはCマイナーを維持</li>
+                <li><strong>親スケールを選択</strong> - 例：C Aeolian（Ebメジャーの6番目のモード）</li>
+                <li><strong>他のコードを親スケールから借用</strong> - トニック以外のコードを選んだ親スケール上で構築</li>
+              </ol>
+            </section>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>モードと親スケールの関係</h3>
+              <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '4px', fontSize: '14px' }}>
+                <p style={{ margin: '5px 0' }}><strong>Aeolian（エオリアン）</strong>：Ebメジャーの6番目のモード → 暗め・マイナー的</p>
+                <p style={{ margin: '5px 0' }}><strong>Dorian（ドリアン）</strong>：Bbメジャーの2番目のモード → 明るめのマイナー</p>
+                <p style={{ margin: '5px 0' }}><strong>Phrygian（フリジアン）</strong>：Abメジャーの3番目のモード → エキゾチック・暗い</p>
+                <p style={{ margin: '5px 0' }}><strong>Lydian（リディアン）</strong>：Gメジャーの4番目のモード → 明るく浮遊感</p>
+                <p style={{ margin: '5px 0' }}><strong>Mixolydian（ミクソリディアン）</strong>：Fメジャーの5番目のモード → 明るくブルージー</p>
+              </div>
+            </section>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>実践例：C Aeolian（Ebメジャー由来）</h3>
+              <div style={{ background: '#e3f2fd', padding: '15px', borderRadius: '4px' }}>
+                <div style={{ marginBottom: '15px' }}>
+                  <strong style={{ display: 'block', marginBottom: '8px' }}>通常のCメジャー進行：</strong>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {['C', 'Dm7', 'Am7', 'G7'].map((chord, idx) => {
+                      const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                      const quality = chord.slice(root.length)
+                      return (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            onClick={() => playSingleChord({ root, quality, isBorrowed: false })}
+                            style={{
+                              padding: '8px 16px',
+                              background: '#ffffff',
+                              color: '#000',
+                              border: '2px solid #333',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                          >
+                            {chord}
+                          </button>
+                          {idx < 3 && <span>→</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ display: 'block', marginBottom: '8px' }}>Cush Chords版（Aeolian）：</strong>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {['C', 'Fm7', 'Gm7', 'Bb7'].map((chord, idx) => {
+                      const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                      const quality = chord.slice(root.length)
+                      return (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                            style={{
+                              padding: '8px 16px',
+                              background: '#ffffff',
+                              color: '#000',
+                              border: '2px solid #666',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                          >
+                            {chord}
+                          </button>
+                          {idx < 3 && <span>→</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                <p style={{ marginTop: '10px', fontSize: '13px', color: '#666' }}>
+                  トニック（C）を維持しつつ、残りのコードをEbメジャースケールから借用しています。<br />
+                  <strong>コードをクリックすると音が聞けます！</strong>
+                </p>
+              </div>
+            </section>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>なぜ効果的なのか</h3>
+              <ul style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
+                <li><strong>トニックを維持</strong>することで「キーの重心」が保たれ、聴きやすさを維持</li>
+                <li><strong>親スケールの変更</strong>により、転調ほど強くなく、でも"色"が変わる</li>
+                <li><strong>モード選択</strong>で「メジャー/マイナー」「明るい/暗い」のグラデーションが出せる</li>
+                <li>モダンなジャズ／ポップ／R&B的な<strong>「浮遊感」「曖昧なキー感」</strong>を作りやすい</li>
+              </ul>
+            </section>
+
+            <section style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>使い方のコツ</h3>
+              <ul style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
+                <li>基本進行（I → IV → V など）から始めて、親スケールを変えて試す</li>
+                <li>トニック（C）は必ず維持する（変えると転調になる）</li>
+                <li>ルート音の動きが滑らかになるように意識する</li>
+                <li>7thコードを使うとジャズらしい響きが得られる</li>
+                <li>モードの選択で雰囲気が大きく変わるので、曲の雰囲気に合わせて選ぶ</li>
+              </ul>
+            </section>
+
+            <button
+              onClick={() => setShowExplanation(false)}
+              style={{
+                padding: '12px 24px',
+                background: '#000',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                width: '100%',
+                marginTop: '10px'
+              }}
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
