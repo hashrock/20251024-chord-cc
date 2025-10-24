@@ -11,13 +11,22 @@ function App() {
   const [chords, setChords] = useState<Chord[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
 
-  const roots = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+  // 音名順に並べる
+  const roots = [
+    { note: 'C', degree: 'I', diatonic: '' },      // メジャー
+    { note: 'D', degree: 'IIm', diatonic: 'm' },   // マイナー
+    { note: 'E', degree: 'IIIm', diatonic: 'm' },  // マイナー
+    { note: 'F', degree: 'IV', diatonic: '' },     // メジャー
+    { note: 'G', degree: 'V', diatonic: '' },      // メジャー
+    { note: 'A', degree: 'VIm', diatonic: 'm' },   // マイナー
+    { note: 'B', degree: 'VIIdim', diatonic: 'dim' }, // ディミニッシュ
+  ]
   const qualities = [
     { label: 'メジャー', value: '' },
     { label: 'マイナー', value: 'm' },
     { label: '7th', value: '7' },
-    { label: 'M7', value: 'M7' },
     { label: 'm7', value: 'm7' },
+    { label: 'M7', value: 'M7' },
     { label: 'dim', value: 'dim' },
     { label: 'aug', value: 'aug' },
   ]
@@ -31,6 +40,32 @@ function App() {
 
   const addChord = (root: string, quality: string, isBorrowed = false) => {
     setChords([...chords, { root, quality, isBorrowed }])
+    // ボタンを押したときに音を鳴らす
+    playSingleChord({ root, quality, isBorrowed })
+  }
+
+  const playSingleChord = (chord: Chord) => {
+    const audioContext = new AudioContext()
+    const frequencies = getChordFrequencies(chord)
+    const startTime = audioContext.currentTime
+    const duration = 0.5
+
+    frequencies.forEach(freq => {
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.type = 'sine'
+      oscillator.frequency.value = freq
+
+      gainNode.gain.setValueAtTime(0.15, startTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      oscillator.start(startTime)
+      oscillator.stop(startTime + duration)
+    })
   }
 
   const removeChord = (index: number) => {
@@ -172,12 +207,32 @@ function App() {
         <h3>コードを追加:</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', marginBottom: '10px' }}>
           {roots.map(root => (
-            <div key={root}>
-              <div style={{ fontWeight: 'bold', marginBottom: '5px', textAlign: 'center' }}>{root}</div>
+            <div key={root.note}>
+              <div style={{ fontWeight: 'bold', marginBottom: '5px', textAlign: 'center' }}>
+                {root.note}
+                <div style={{ fontSize: '10px', color: '#666' }}>{root.degree}</div>
+              </div>
+              {/* スケールに合った基本コード */}
+              <button
+                onClick={() => addChord(root.note, root.diatonic)}
+                style={{
+                  width: '100%',
+                  padding: '8px 2px',
+                  marginBottom: '5px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  background: '#4caf50',
+                  color: 'white',
+                  border: '1px solid #45a049',
+                  fontWeight: 'bold'
+                }}
+              >
+                {root.note}{root.diatonic}
+              </button>
               {qualities.map(quality => (
                 <button
-                  key={`${root}-${quality.value}`}
-                  onClick={() => addChord(root, quality.value)}
+                  key={`${root.note}-${quality.value}`}
+                  onClick={() => addChord(root.note, quality.value)}
                   style={{
                     width: '100%',
                     padding: '5px 2px',
