@@ -10,6 +10,7 @@ interface Chord {
 function App() {
   const [chords, setChords] = useState<Chord[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
+  const [selectedMode, setSelectedMode] = useState<string>('aeolian')
 
   // 音名順に並べる
   const roots = [
@@ -30,6 +31,75 @@ function App() {
     { label: 'dim', value: 'dim' },
     { label: 'aug', value: 'aug' },
   ]
+
+  // モード定義：各モードと親スケールの関係
+  const modes = {
+    aeolian: {
+      name: 'Aeolian (エオリアン)',
+      parentKey: 'Eb Major',
+      description: 'C Aeolian = Eb Majorの6番目のモード（暗め・マイナー的）',
+      cushChords: [
+        { root: 'Eb', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'F', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'G', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'Ab', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Bb', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'D', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    },
+    dorian: {
+      name: 'Dorian (ドリアン)',
+      parentKey: 'Bb Major',
+      description: 'C Dorian = Bb Majorの2番目のモード（明るめのマイナー）',
+      cushChords: [
+        { root: 'Bb', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'D', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'Eb', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'F', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'G', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'A', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    },
+    phrygian: {
+      name: 'Phrygian (フリジアン)',
+      parentKey: 'Ab Major',
+      description: 'C Phrygian = Ab Majorの3番目のモード（エキゾチック・暗い）',
+      cushChords: [
+        { root: 'Ab', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'Bb', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'Db', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Eb', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'F', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'G', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    },
+    lydian: {
+      name: 'Lydian (リディアン)',
+      parentKey: 'G Major',
+      description: 'C Lydian = G Majorの4番目のモード（明るく浮遊感）',
+      cushChords: [
+        { root: 'G', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'A', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'B', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'D', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'E', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'F#', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    },
+    mixolydian: {
+      name: 'Mixolydian (ミクソリディアン)',
+      parentKey: 'F Major',
+      description: 'C Mixolydian = F Majorの5番目のモード（明るくブルージー）',
+      cushChords: [
+        { root: 'F', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'G', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'A', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'Bb', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'D', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'E', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    }
+  }
 
   const borrowedChords = [
     { root: 'A', quality: 'm' },
@@ -127,7 +197,7 @@ function App() {
     const noteFrequencies: Record<string, number> = {
       'C': 261.63, 'D': 293.66, 'E': 329.63, 'F': 349.23,
       'G': 392.00, 'A': 440.00, 'B': 493.88,
-      'Eb': 311.13, 'Ab': 415.30, 'Bb': 466.16,
+      'Db': 277.18, 'Eb': 311.13, 'F#': 369.99, 'Ab': 415.30, 'Bb': 466.16,
     }
 
     const root = chord.root.includes('b') ? chord.root : chord.root
@@ -249,8 +319,99 @@ function App() {
         </div>
       </div>
 
+      <div style={{ marginBottom: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
+        <h3>Cush Chords (モーダル・インターチェンジ)</h3>
+
+        {/* モード選択 */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ fontWeight: 'bold', marginRight: '10px' }}>モード選択:</label>
+          <select
+            value={selectedMode}
+            onChange={(e) => setSelectedMode(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              fontSize: '14px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              cursor: 'pointer'
+            }}
+          >
+            {Object.entries(modes).map(([key, mode]) => (
+              <option key={key} value={key}>{mode.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* 親スケール情報 */}
+        <div style={{
+          marginBottom: '15px',
+          padding: '10px',
+          background: 'white',
+          borderRadius: '4px',
+          fontSize: '13px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+            親スケール: {modes[selectedMode as keyof typeof modes].parentKey}
+          </div>
+          <div style={{ color: '#666' }}>
+            {modes[selectedMode as keyof typeof modes].description}
+          </div>
+        </div>
+
+        {/* トニック（C）固定 */}
+        <div style={{ marginBottom: '10px' }}>
+          <span style={{ fontWeight: 'bold', marginRight: '10px' }}>トニック（固定）:</span>
+          <button
+            onClick={() => addChord('C', '')}
+            style={{
+              padding: '10px 20px',
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '16px'
+            }}
+          >
+            C
+          </button>
+        </div>
+
+        {/* Cush Chords パレット */}
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+            借用コード（{modes[selectedMode as keyof typeof modes].parentKey}から）:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }}>
+            {modes[selectedMode as keyof typeof modes].cushChords.map((chord, index) => (
+              <button
+                key={index}
+                onClick={() => addChord(chord.root, chord.quality, true)}
+                style={{
+                  padding: '12px 8px',
+                  background: '#ff9800',
+                  color: 'white',
+                  border: '1px solid #f57c00',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <div style={{ fontSize: '16px' }}>{chord.root}{chord.quality}</div>
+                <div style={{ fontSize: '10px', opacity: 0.9 }}>{chord.degree} ({chord.function})</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div style={{ marginBottom: '20px' }}>
-        <h3>借用和音:</h3>
+        <h3>その他の借用和音:</h3>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {borrowedChords.map((chord, index) => (
             <button
