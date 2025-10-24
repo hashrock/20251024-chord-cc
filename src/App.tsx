@@ -13,6 +13,7 @@ function App() {
   const [selectedMode, setSelectedMode] = useState<string>('aeolian')
   const [lastAddedChord, setLastAddedChord] = useState<string>('')
   const [closedVoicing, setClosedVoicing] = useState(false)
+  const [lastChordFrequencies, setLastChordFrequencies] = useState<number[]>([])
 
   // 音名順に並べる
   const roots = [
@@ -159,6 +160,7 @@ function App() {
   const playSingleChord = (chord: Chord) => {
     const audioContext = new AudioContext()
     const frequencies = getChordFrequencies(chord)
+    setLastChordFrequencies(frequencies) // 次のコードのために保存
     const startTime = audioContext.currentTime
     const duration = 0.5
 
@@ -202,6 +204,7 @@ function App() {
 
   const clearChords = () => {
     setChords([])
+    setLastChordFrequencies([])
   }
 
   const exportToText = () => {
@@ -280,20 +283,41 @@ function App() {
       frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498] // メジャー
     }
 
-    // Closed voicing: オクターブ内に収める
-    if (closedVoicing) {
-      const octaveRatio = 2.0
+    // Closed voicing: 前のコードから各音が最小限の距離で移動する（ボイスリーディング）
+    if (closedVoicing && lastChordFrequencies.length > 0) {
+      // 音域の範囲制限（C3 = 130.81 Hz ~ C6 = 1046.50 Hz）
+      const minFreq = 130.81
+      const maxFreq = 1046.50
+
+      // 各音を前のコードの対応する音に最も近いオクターブに配置
       frequencies = frequencies.map((freq, index) => {
-        if (index === 0) return freq // ルートはそのまま
-        // 各音がルートから1オクターブ以内に収まるように調整
-        while (freq > rootFreq * octaveRatio) {
-          freq = freq / octaveRatio
+        // 前のコードの対応する音（なければ中央の音）
+        const targetFreq = lastChordFrequencies[index] || lastChordFrequencies[Math.floor(lastChordFrequencies.length / 2)]
+
+        // 最も近いオクターブを探す
+        let bestFreq = freq
+        let minDistance = Math.abs(freq - targetFreq)
+
+        // 上下2オクターブ分探索
+        for (let octave = -2; octave <= 2; octave++) {
+          const testFreq = freq * Math.pow(2, octave)
+          // 範囲内の音のみを候補にする
+          if (testFreq >= minFreq && testFreq <= maxFreq) {
+            const distance = Math.abs(testFreq - targetFreq)
+            if (distance < minDistance) {
+              minDistance = distance
+              bestFreq = testFreq
+            }
+          }
         }
-        while (freq < rootFreq) {
-          freq = freq * octaveRatio
-        }
-        return freq
+
+        // 範囲内に収める（念のための安全策）
+        if (bestFreq < minFreq) bestFreq = freq * 2
+        if (bestFreq > maxFreq) bestFreq = freq / 2
+
+        return bestFreq
       })
+
       // 周波数順にソート
       frequencies.sort((a, b) => a - b)
     }
@@ -328,22 +352,24 @@ function App() {
                 key={index}
                 style={{
                   padding: '8px 12px',
-                  background: chord.isBorrowed ? '#ff9800' : '#2196f3',
-                  color: '#fff',
+                  background: '#ffffff',
+                  color: '#000',
+                  border: chord.isBorrowed ? '2px solid #666' : '2px solid #333',
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}
               >
                 <span>{chord.root}{chord.quality}</span>
                 <button
                   onClick={() => removeChord(index)}
                   style={{
-                    background: 'rgba(0,0,0,0.3)',
-                    border: 'none',
-                    color: 'white',
+                    background: '#f0f0f0',
+                    border: '1px solid #ccc',
+                    color: '#333',
                     borderRadius: '3px',
                     cursor: 'pointer',
                     padding: '2px 6px'
@@ -375,11 +401,12 @@ function App() {
                   marginBottom: '5px',
                   fontSize: '12px',
                   cursor: 'pointer',
-                  background: '#4caf50',
-                  color: 'white',
-                  border: lastAddedChord && chordProgressions[lastAddedChord]?.includes(`${root.note}${root.diatonic}`) ? '3px solid #ff6b6b' : '1px solid #45a049',
+                  background: '#ffffff',
+                  color: '#000000',
+                  border: lastAddedChord && chordProgressions[lastAddedChord]?.includes(`${root.note}${root.diatonic}`) ? '3px solid #ff6b6b' : '2px solid #333333',
                   fontWeight: 'bold',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}
               >
                 {root.note}{root.diatonic}
@@ -436,7 +463,7 @@ function App() {
         </div>
 
         {/* オプション */}
-        <div style={{ marginBottom: '15px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <div style={{ marginBottom: '15px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
             <input
               type="checkbox"
@@ -444,8 +471,25 @@ function App() {
               onChange={(e) => setClosedVoicing(e.target.checked)}
               style={{ cursor: 'pointer' }}
             />
-            <span>Closed Voicing（密集配置）</span>
+            <span>ボイスリーディング（前のコードから最小限の音程移動）</span>
           </label>
+          {closedVoicing && (
+            <button
+              onClick={() => setLastChordFrequencies([])}
+              style={{
+                padding: '6px 12px',
+                background: '#ffffff',
+                color: '#000',
+                border: '2px solid #666',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}
+            >
+              リセット
+            </button>
+          )}
         </div>
 
         {/* モード選択 */}
@@ -491,14 +535,15 @@ function App() {
             onClick={() => addChord('C', '')}
             style={{
               padding: '10px 20px',
-              background: '#2196f3',
-              color: 'white',
-              border: lastAddedChord && (getCushProgressions(selectedMode as keyof typeof modes)[lastAddedChord]?.includes('C') || chordProgressions[lastAddedChord]?.includes('C')) ? '3px solid #ff6b6b' : 'none',
+              background: '#ffffff',
+              color: '#000000',
+              border: lastAddedChord && (getCushProgressions(selectedMode as keyof typeof modes)[lastAddedChord]?.includes('C') || chordProgressions[lastAddedChord]?.includes('C')) ? '3px solid #ff6b6b' : '2px solid #333',
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
               fontSize: '16px',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}
           >
             C
@@ -522,9 +567,9 @@ function App() {
                   onClick={() => addChord(chord.root, chord.quality, true)}
                   style={{
                     padding: '12px 8px',
-                    background: '#ff9800',
-                    color: 'white',
-                    border: isHighlighted ? '3px solid #ff6b6b' : '1px solid #f57c00',
+                    background: '#ffffff',
+                    color: '#000000',
+                    border: isHighlighted ? '3px solid #ff6b6b' : '2px solid #666',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     fontWeight: 'bold',
@@ -532,11 +577,12 @@ function App() {
                     flexDirection: 'column',
                     alignItems: 'center',
                     gap: '4px',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
                   <div style={{ fontSize: '16px' }}>{chord.root}{chord.quality}</div>
-                  <div style={{ fontSize: '10px', opacity: 0.9 }}>{chord.degree} ({chord.function})</div>
+                  <div style={{ fontSize: '10px', color: '#666' }}>{chord.degree} ({chord.function})</div>
                 </button>
               )
             })}
@@ -550,13 +596,14 @@ function App() {
           disabled={isPlaying || chords.length === 0}
           style={{
             padding: '12px 24px',
-            background: isPlaying ? '#ccc' : '#4caf50',
-            color: 'white',
-            border: 'none',
+            background: isPlaying || chords.length === 0 ? '#f5f5f5' : '#ffffff',
+            color: isPlaying || chords.length === 0 ? '#999' : '#000',
+            border: '2px solid #333',
             borderRadius: '4px',
             cursor: isPlaying || chords.length === 0 ? 'not-allowed' : 'pointer',
             fontSize: '16px',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            boxShadow: isPlaying || chords.length === 0 ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
           }}
         >
           {isPlaying ? '再生中...' : '再生'}
@@ -567,12 +614,13 @@ function App() {
           disabled={chords.length === 0}
           style={{
             padding: '12px 24px',
-            background: chords.length === 0 ? '#ccc' : '#2196f3',
-            color: 'white',
-            border: 'none',
+            background: chords.length === 0 ? '#f5f5f5' : '#ffffff',
+            color: chords.length === 0 ? '#999' : '#000',
+            border: '2px solid #333',
             borderRadius: '4px',
             cursor: chords.length === 0 ? 'not-allowed' : 'pointer',
-            fontSize: '16px'
+            fontSize: '16px',
+            boxShadow: chords.length === 0 ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
           }}
         >
           テキスト出力
@@ -583,12 +631,13 @@ function App() {
           disabled={chords.length === 0}
           style={{
             padding: '12px 24px',
-            background: chords.length === 0 ? '#ccc' : '#f44336',
-            color: 'white',
-            border: 'none',
+            background: chords.length === 0 ? '#f5f5f5' : '#ffffff',
+            color: chords.length === 0 ? '#999' : '#000',
+            border: '2px solid #333',
             borderRadius: '4px',
             cursor: chords.length === 0 ? 'not-allowed' : 'pointer',
-            fontSize: '16px'
+            fontSize: '16px',
+            boxShadow: chords.length === 0 ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
           }}
         >
           クリア
