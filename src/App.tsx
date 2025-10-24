@@ -16,6 +16,21 @@ function App() {
   const [lastChordFrequencies, setLastChordFrequencies] = useState<number[]>([])
   const [waveformType, setWaveformType] = useState<OscillatorType>('sine')
   const [showExplanation, setShowExplanation] = useState(false)
+  const [playingNotes, setPlayingNotes] = useState<string[]>([])
+
+  // 選択中のモードで使用される音階を取得
+  const getScaleNotes = (mode: string): string[] => {
+    const modeKey = mode as keyof typeof modes
+    if (!modes[modeKey]) return ['C']
+
+    // トニックのCと、cushChordsのroot音を集める
+    const scaleNotes = new Set<string>(['C'])
+    modes[modeKey].cushChords.forEach(chord => {
+      scaleNotes.add(chord.root)
+    })
+
+    return Array.from(scaleNotes)
+  }
 
   // 音名順に並べる
   const roots = [
@@ -198,12 +213,44 @@ function App() {
     playSingleChord({ root, quality, isBorrowed })
   }
 
+  // 周波数から音名を取得（おおよそ）
+  const getNoteName = (freq: number): string => {
+    const noteFrequencies: Record<string, number> = {
+      'C': 261.63, 'Db': 277.18, 'D': 293.66, 'Eb': 311.13,
+      'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00,
+      'Ab': 415.30, 'A': 440.00, 'Bb': 466.16, 'B': 493.88,
+    }
+
+    let closestNote = 'C'
+    let minDiff = Infinity
+
+    Object.entries(noteFrequencies).forEach(([note, noteFreq]) => {
+      const diff = Math.abs(freq - noteFreq)
+      if (diff < minDiff) {
+        minDiff = diff
+        closestNote = note
+      }
+    })
+
+    return closestNote
+  }
+
   const playSingleChord = (chord: Chord) => {
     const audioContext = new AudioContext()
     const frequencies = getChordFrequencies(chord)
     setLastChordFrequencies(frequencies) // 次のコードのために保存
+
+    // 再生中の音名を設定
+    const noteNames = frequencies.map(freq => getNoteName(freq))
+    setPlayingNotes(noteNames)
+
     const startTime = audioContext.currentTime
     const duration = 0.5
+
+    // duration後に再生中の音をクリア
+    setTimeout(() => {
+      setPlayingNotes([])
+    }, duration * 1000)
 
     // ベーストーンを2オクターブ下で追加（周波数を1/4に）
     const bassFreq = frequencies[0] / 4
@@ -271,6 +318,11 @@ function App() {
   const playChord = (audioContext: AudioContext, chord: Chord) => {
     return new Promise<void>((resolve) => {
       const frequencies = getChordFrequencies(chord)
+
+      // 再生中の音名を設定
+      const noteNames = frequencies.map(freq => getNoteName(freq))
+      setPlayingNotes(noteNames)
+
       const startTime = audioContext.currentTime
       const duration = 1.0
 
@@ -291,7 +343,10 @@ function App() {
         oscillator.stop(startTime + duration)
       })
 
-      setTimeout(() => resolve(), duration * 1000)
+      setTimeout(() => {
+        setPlayingNotes([])
+        resolve()
+      }, duration * 1000)
     })
   }
 
@@ -421,6 +476,105 @@ function App() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* 鍵盤ビジュアライゼーション */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3>鍵盤プレビュー</h3>
+        <div style={{
+          padding: '20px',
+          border: '2px solid #ccc',
+          borderRadius: '5px',
+          backgroundColor: '#f9f9f9',
+          overflowX: 'auto'
+        }}>
+          <div style={{ position: 'relative', height: '120px', display: 'flex', minWidth: '1050px' }}>
+            {/* 白鍵 - 3オクターブ */}
+            {[3, 4, 5].map((octave) =>
+              ['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => {
+                const noteWithOctave = `${note}${octave}`
+                const isPlaying = playingNotes.includes(note)
+                const isInScale = getScaleNotes(selectedMode).includes(note)
+
+                return (
+                  <div
+                    key={noteWithOctave}
+                    style={{
+                      width: '50px',
+                      height: '120px',
+                      backgroundColor: isPlaying ? '#ff6b6b' : isInScale ? '#e3f2fd' : '#fff',
+                      border: '2px solid #333',
+                      borderRadius: '0 0 5px 5px',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      paddingBottom: '5px',
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      color: isPlaying ? '#fff' : isInScale ? '#000' : '#666',
+                      transition: 'all 0.1s ease',
+                      boxShadow: isPlaying ? '0 0 15px rgba(255, 107, 107, 0.8)' : 'none',
+                      transform: isPlaying ? 'translateY(2px)' : 'none'
+                    }}
+                  >
+                    {note}
+                  </div>
+                )
+              })
+            ).flat()}
+            {/* 黒鍵 - 3オクターブ */}
+            {[3, 4, 5].map((octave, octaveIndex) =>
+              [
+                { note: 'Db', offset: 35 },
+                { note: 'Eb', offset: 87 },
+                { note: 'F#', offset: 187 },
+                { note: 'Ab', offset: 239 },
+                { note: 'Bb', offset: 291 },
+              ].map(({ note, offset }) => {
+                const noteWithOctave = `${note}${octave}`
+                const left = offset + (octaveIndex * 350)
+                const isPlaying = playingNotes.includes(note)
+                const isInScale = getScaleNotes(selectedMode).includes(note)
+
+                return (
+                  <div
+                    key={noteWithOctave}
+                    style={{
+                      position: 'absolute',
+                      left: `${left}px`,
+                      width: '30px',
+                      height: '70px',
+                      backgroundColor: isPlaying ? '#ff6b6b' : isInScale ? '#666' : '#000',
+                      border: '2px solid #333',
+                      borderRadius: '0 0 3px 3px',
+                      zIndex: 2,
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      paddingBottom: '3px',
+                      fontSize: '7px',
+                      fontWeight: 'bold',
+                      color: '#fff',
+                      transition: 'all 0.1s ease',
+                      boxShadow: isPlaying ? '0 0 15px rgba(255, 107, 107, 0.8)' : 'none',
+                      transform: isPlaying ? 'translateY(2px)' : 'none'
+                    }}
+                  >
+                    {note}
+                  </div>
+                )
+              })
+            ).flat()}
+          </div>
+          <div style={{ marginTop: '15px', fontSize: '12px', color: '#666', textAlign: 'center' }}>
+            <span style={{ marginRight: '15px' }}>
+              ⚫ 黒：再生中
+            </span>
+            <span style={{ marginRight: '15px' }}>
+              🔵 青：選択中のスケール（{modes[selectedMode as keyof typeof modes]?.name}）
+            </span>
+          </div>
         </div>
       </div>
 
