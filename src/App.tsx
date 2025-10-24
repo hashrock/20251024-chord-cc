@@ -43,10 +43,15 @@ function App() {
       description: 'C Aeolian = Eb Majorの6番目のモード（暗め・マイナー的）',
       cushChords: [
         { root: 'Eb', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'Eb', quality: 'M7', degree: 'IM7', function: 'トニック' },
         { root: 'F', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'F', quality: 'm7', degree: 'IIm7', function: 'サブドミナント' },
         { root: 'G', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'G', quality: 'm7', degree: 'IIIm7', function: 'メディアント' },
         { root: 'Ab', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Ab', quality: 'M7', degree: 'IVM7', function: 'サブドミナント' },
         { root: 'Bb', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'Bb', quality: '7', degree: 'V7', function: 'ドミナント' },
         { root: 'D', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
       ]
     },
@@ -56,10 +61,15 @@ function App() {
       description: 'C Dorian = Bb Majorの2番目のモード（明るめのマイナー）',
       cushChords: [
         { root: 'Bb', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'Bb', quality: 'M7', degree: 'IM7', function: 'トニック' },
         { root: 'D', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'D', quality: 'm7', degree: 'IIIm7', function: 'メディアント' },
         { root: 'Eb', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Eb', quality: 'M7', degree: 'IVM7', function: 'サブドミナント' },
         { root: 'F', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'F', quality: '7', degree: 'V7', function: 'ドミナント' },
         { root: 'G', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'G', quality: 'm7', degree: 'VIm7', function: 'サブメディアント' },
         { root: 'A', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
       ]
     },
@@ -69,10 +79,15 @@ function App() {
       description: 'C Phrygian = Ab Majorの3番目のモード（エキゾチック・暗い）',
       cushChords: [
         { root: 'Ab', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'Ab', quality: 'M7', degree: 'IM7', function: 'トニック' },
         { root: 'Bb', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'Bb', quality: 'm7', degree: 'IIm7', function: 'サブドミナント' },
         { root: 'Db', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Db', quality: 'M7', degree: 'IVM7', function: 'サブドミナント' },
         { root: 'Eb', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'Eb', quality: '7', degree: 'V7', function: 'ドミナント' },
         { root: 'F', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'F', quality: 'm7', degree: 'VIm7', function: 'サブメディアント' },
         { root: 'G', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
       ]
     },
@@ -82,10 +97,15 @@ function App() {
       description: 'C Lydian = G Majorの4番目のモード（明るく浮遊感）',
       cushChords: [
         { root: 'G', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'G', quality: 'M7', degree: 'IM7', function: 'トニック' },
         { root: 'A', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'A', quality: 'm7', degree: 'IIm7', function: 'サブドミナント' },
         { root: 'B', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'B', quality: 'm7', degree: 'IIIm7', function: 'メディアント' },
         { root: 'D', quality: '', degree: 'V', function: 'ドミナント' },
+        { root: 'D', quality: '7', degree: 'V7', function: 'ドミナント' },
         { root: 'E', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'E', quality: 'm7', degree: 'VIm7', function: 'サブメディアント' },
         { root: 'F#', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
       ]
     },
@@ -95,11 +115,30 @@ function App() {
       description: 'C Mixolydian = F Majorの5番目のモード（明るくブルージー）',
       cushChords: [
         { root: 'F', quality: '', degree: 'I', function: 'トニック' },
+        { root: 'F', quality: 'M7', degree: 'IM7', function: 'トニック' },
         { root: 'G', quality: 'm', degree: 'II', function: 'サブドミナント' },
+        { root: 'G', quality: 'm7', degree: 'IIm7', function: 'サブドミナント' },
         { root: 'A', quality: 'm', degree: 'III', function: 'メディアント' },
+        { root: 'A', quality: 'm7', degree: 'IIIm7', function: 'メディアント' },
         { root: 'Bb', quality: '', degree: 'IV', function: 'サブドミナント' },
+        { root: 'Bb', quality: 'M7', degree: 'IVM7', function: 'サブドミナント' },
         { root: 'D', quality: 'm', degree: 'VI', function: 'サブメディアント' },
+        { root: 'D', quality: 'm7', degree: 'VIm7', function: 'サブメディアント' },
         { root: 'E', quality: 'dim', degree: 'VII', function: 'リーディングトーン' },
+      ]
+    },
+    jazz: {
+      name: 'Jazz (ジャズ)',
+      parentKey: 'C Major Jazz',
+      description: 'ジャズの典型的な7thコードを使用（II-V-I進行が基本）',
+      cushChords: [
+        { root: 'D', quality: 'm7', degree: 'IIm7', function: 'サブドミナント' },
+        { root: 'G', quality: '7', degree: 'V7', function: 'ドミナント' },
+        { root: 'C', quality: 'M7', degree: 'IM7', function: 'トニック' },
+        { root: 'E', quality: 'm7', degree: 'IIIm7', function: 'メディアント' },
+        { root: 'A', quality: 'm7', degree: 'VIm7', function: 'サブメディアント' },
+        { root: 'F', quality: 'M7', degree: 'IVM7', function: 'サブドミナント' },
+        { root: 'B', quality: 'dim', degree: 'VIIdim', function: 'リーディングトーン' },
       ]
     }
   }
@@ -528,26 +567,49 @@ function App() {
           </div>
         </div>
 
-        {/* トニック（C）固定 */}
+        {/* トニック（C）のバリエーション */}
         <div style={{ marginBottom: '10px' }}>
-          <span style={{ fontWeight: 'bold', marginRight: '10px' }}>トニック（固定）:</span>
-          <button
-            onClick={() => addChord('C', '')}
-            style={{
-              padding: '10px 20px',
-              background: '#ffffff',
-              color: '#000000',
-              border: lastAddedChord && (getCushProgressions(selectedMode as keyof typeof modes)[lastAddedChord]?.includes('C') || chordProgressions[lastAddedChord]?.includes('C')) ? '3px solid #ff6b6b' : '2px solid #333',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '16px',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}
-          >
-            C
-          </button>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>トニック（C）のバリエーション:</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px' }}>
+            {[
+              { quality: '', label: 'C', degree: 'I' },
+              { quality: 'm', label: 'Cm', degree: 'Im' },
+              { quality: 'M7', label: 'CM7', degree: 'IM7' },
+              { quality: 'm7', label: 'Cm7', degree: 'Im7' },
+              { quality: '7', label: 'C7', degree: 'I7' },
+              { quality: 'dim', label: 'Cdim', degree: 'Idim' },
+              { quality: 'aug', label: 'Caug', degree: 'Iaug' },
+            ].map((chord, index) => {
+              const chordName = `C${chord.quality}`
+              const cushProgressions = getCushProgressions(selectedMode as keyof typeof modes)
+              const isHighlighted = lastAddedChord && (cushProgressions[lastAddedChord]?.includes(chordName) || chordProgressions[lastAddedChord]?.includes(chordName))
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => addChord('C', chord.quality)}
+                  style={{
+                    padding: '12px 8px',
+                    background: '#ffffff',
+                    color: '#000000',
+                    border: isHighlighted ? '3px solid #ff6b6b' : '2px solid #333',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <div style={{ fontSize: '16px' }}>{chord.label}</div>
+                  <div style={{ fontSize: '10px', color: '#666' }}>{chord.degree}</div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Cush Chords パレット */}
