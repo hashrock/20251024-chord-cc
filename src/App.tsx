@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import { noteToFrequency, frequencyToNote } from './utils/music'
 
 interface Chord {
   root: string
@@ -213,26 +214,10 @@ function App() {
     playSingleChord({ root, quality, isBorrowed })
   }
 
-  // 周波数から音名を取得（おおよそ）
+  // 周波数から音名を取得
   const getNoteName = (freq: number): string => {
-    const noteFrequencies: Record<string, number> = {
-      'C': 261.63, 'Db': 277.18, 'D': 293.66, 'Eb': 311.13,
-      'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00,
-      'Ab': 415.30, 'A': 440.00, 'Bb': 466.16, 'B': 493.88,
-    }
-
-    let closestNote = 'C'
-    let minDiff = Infinity
-
-    Object.entries(noteFrequencies).forEach(([note, noteFreq]) => {
-      const diff = Math.abs(freq - noteFreq)
-      if (diff < minDiff) {
-        minDiff = diff
-        closestNote = note
-      }
-    })
-
-    return closestNote
+    const { note } = frequencyToNote(freq, true) // フラット優先
+    return note
   }
 
   const playSingleChord = (chord: Chord) => {
@@ -351,14 +336,8 @@ function App() {
   }
 
   const getChordFrequencies = (chord: Chord): number[] => {
-    const noteFrequencies: Record<string, number> = {
-      'C': 261.63, 'D': 293.66, 'E': 329.63, 'F': 349.23,
-      'G': 392.00, 'A': 440.00, 'B': 493.88,
-      'Db': 277.18, 'Eb': 311.13, 'F#': 369.99, 'Ab': 415.30, 'Bb': 466.16,
-    }
-
-    const root = chord.root.includes('b') || chord.root.includes('#') ? chord.root : chord.root
-    const rootFreq = noteFrequencies[root] || 261.63
+    // noteToFrequencyを使用して周波数を計算（オクターブ4を基準）
+    const rootFreq = noteToFrequency(chord.root, 4)
 
     let frequencies: number[] = []
 
