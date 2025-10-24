@@ -11,6 +11,8 @@ function App() {
   const [chords, setChords] = useState<Chord[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedMode, setSelectedMode] = useState<string>('aeolian')
+  const [lastAddedChord, setLastAddedChord] = useState<string>('')
+  const [closedVoicing, setClosedVoicing] = useState(false)
 
   // 音名順に並べる
   const roots = [
@@ -101,15 +103,55 @@ function App() {
     }
   }
 
-  const borrowedChords = [
-    { root: 'A', quality: 'm' },
-    { root: 'B', quality: 'b' },
-    { root: 'E', quality: 'b' },
-    { root: 'A', quality: 'b' },
-  ]
+  // コード進行のつながり（トニック → サブドミナント → ドミナント → トニック）
+  const chordProgressions: Record<string, string[]> = {
+    // トニック（I）から
+    'C': ['Dm', 'Em', 'F', 'G', 'Am'],
+    // サブドミナント（IV, IIm, VIm）から
+    'F': ['G', 'Dm', 'Em', 'Am', 'C'],
+    'Dm': ['G', 'F', 'Em', 'Am', 'C'],
+    'Am': ['F', 'Dm', 'G', 'C', 'Em'],
+    // ドミナント（V）から
+    'G': ['C', 'Am', 'F'],
+    // メディアント（IIIm）から
+    'Em': ['Am', 'F', 'Dm', 'G'],
+    // ディミニッシュから
+    'Bdim': ['C', 'Em', 'G'],
+  }
+
+  // Cush Chordsのコード進行も追加
+  const getCushProgressions = (mode: keyof typeof modes): Record<string, string[]> => {
+    const cushChords = modes[mode].cushChords
+    // 親スケールのコードからのつながり
+    const progressions: Record<string, string[]> = {
+      'C': cushChords.map(c => `${c.root}${c.quality}`)
+    }
+
+    cushChords.forEach(chord => {
+      const chordName = `${chord.root}${chord.quality}`
+      // 基本的な進行: サブドミナント → ドミナント → トニック
+      if (chord.function === 'サブドミナント') {
+        progressions[chordName] = cushChords
+          .filter(c => c.function === 'ドミナント' || c.function === 'メディアント')
+          .map(c => `${c.root}${c.quality}`)
+        progressions[chordName].push('C')
+      } else if (chord.function === 'ドミナント') {
+        progressions[chordName] = ['C']
+        cushChords
+          .filter(c => c.function === 'サブドミナント')
+          .forEach(c => progressions[chordName].push(`${c.root}${c.quality}`))
+      } else {
+        progressions[chordName] = cushChords.map(c => `${c.root}${c.quality}`)
+        progressions[chordName].push('C')
+      }
+    })
+
+    return progressions
+  }
 
   const addChord = (root: string, quality: string, isBorrowed = false) => {
     setChords([...chords, { root, quality, isBorrowed }])
+    setLastAddedChord(`${root}${quality}`)
     // ボタンを押したときに音を鳴らす
     playSingleChord({ root, quality, isBorrowed })
   }
@@ -120,6 +162,22 @@ function App() {
     const startTime = audioContext.currentTime
     const duration = 0.5
 
+    // ベーストーンを2オクターブ下で追加（周波数を1/4に）
+    const bassFreq = frequencies[0] / 4
+    const bassOscillator = audioContext.createOscillator()
+    const bassGain = audioContext.createGain()
+
+    bassOscillator.type = 'sine'
+    bassOscillator.frequency.value = bassFreq
+    bassGain.gain.setValueAtTime(0.2, startTime)
+    bassGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+
+    bassOscillator.connect(bassGain)
+    bassGain.connect(audioContext.destination)
+    bassOscillator.start(startTime)
+    bassOscillator.stop(startTime + duration)
+
+    // 和音の各音
     frequencies.forEach(freq => {
       const oscillator = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
@@ -127,7 +185,7 @@ function App() {
       oscillator.type = 'sine'
       oscillator.frequency.value = freq
 
-      gainNode.gain.setValueAtTime(0.15, startTime)
+      gainNode.gain.setValueAtTime(0.12, startTime)
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
 
       oscillator.connect(gainNode)
@@ -200,25 +258,47 @@ function App() {
       'Db': 277.18, 'Eb': 311.13, 'F#': 369.99, 'Ab': 415.30, 'Bb': 466.16,
     }
 
-    const root = chord.root.includes('b') ? chord.root : chord.root
+    const root = chord.root.includes('b') || chord.root.includes('#') ? chord.root : chord.root
     const rootFreq = noteFrequencies[root] || 261.63
+
+    let frequencies: number[] = []
 
     // シンプルな和音構成
     if (chord.quality === 'm') {
-      return [rootFreq, rootFreq * 1.189, rootFreq * 1.498] // マイナー
+      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.498] // マイナー
     } else if (chord.quality === '7') {
-      return [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.782] // 7th
+      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.782] // 7th
     } else if (chord.quality === 'M7') {
-      return [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.888] // M7
+      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.888] // M7
     } else if (chord.quality === 'm7') {
-      return [rootFreq, rootFreq * 1.189, rootFreq * 1.498, rootFreq * 1.782] // m7
+      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.498, rootFreq * 1.782] // m7
     } else if (chord.quality === 'dim') {
-      return [rootFreq, rootFreq * 1.189, rootFreq * 1.414] // dim
+      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.414] // dim
     } else if (chord.quality === 'aug') {
-      return [rootFreq, rootFreq * 1.26, rootFreq * 1.587] // aug
+      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.587] // aug
+    } else {
+      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498] // メジャー
     }
 
-    return [rootFreq, rootFreq * 1.26, rootFreq * 1.498] // メジャー
+    // Closed voicing: オクターブ内に収める
+    if (closedVoicing) {
+      const octaveRatio = 2.0
+      frequencies = frequencies.map((freq, index) => {
+        if (index === 0) return freq // ルートはそのまま
+        // 各音がルートから1オクターブ以内に収まるように調整
+        while (freq > rootFreq * octaveRatio) {
+          freq = freq / octaveRatio
+        }
+        while (freq < rootFreq) {
+          freq = freq * octaveRatio
+        }
+        return freq
+      })
+      // 周波数順にソート
+      frequencies.sort((a, b) => a - b)
+    }
+
+    return frequencies
   }
 
   return (
@@ -229,13 +309,16 @@ function App() {
         <h2>現在のコード進行:</h2>
         <div style={{
           minHeight: '60px',
+          maxHeight: '120px',
+          overflowX: 'auto',
+          overflowY: 'hidden',
           padding: '15px',
           border: '2px solid #ccc',
           borderRadius: '5px',
           display: 'flex',
           gap: '10px',
-          flexWrap: 'wrap',
-          alignItems: 'center'
+          alignItems: 'center',
+          whiteSpace: 'nowrap'
         }}>
           {chords.length === 0 ? (
             <span style={{ color: '#999' }}>コードを追加してください</span>
@@ -245,12 +328,13 @@ function App() {
                 key={index}
                 style={{
                   padding: '8px 12px',
-                  background: chord.isBorrowed ? '#ffeb3b' : '#2196f3',
-                  color: chord.isBorrowed ? '#000' : '#fff',
+                  background: chord.isBorrowed ? '#ff9800' : '#2196f3',
+                  color: '#fff',
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '8px',
+                  flexShrink: 0
                 }}
               >
                 <span>{chord.root}{chord.quality}</span>
@@ -293,27 +377,38 @@ function App() {
                   cursor: 'pointer',
                   background: '#4caf50',
                   color: 'white',
-                  border: '1px solid #45a049',
-                  fontWeight: 'bold'
+                  border: lastAddedChord && chordProgressions[lastAddedChord]?.includes(`${root.note}${root.diatonic}`) ? '3px solid #ff6b6b' : '1px solid #45a049',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {root.note}{root.diatonic}
               </button>
-              {qualities.map(quality => (
-                <button
-                  key={`${root.note}-${quality.value}`}
-                  onClick={() => addChord(root.note, quality.value)}
-                  style={{
-                    width: '100%',
-                    padding: '5px 2px',
-                    marginBottom: '3px',
-                    fontSize: '11px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {quality.label}
-                </button>
-              ))}
+              {qualities.map(quality => {
+                const chordName = `${root.note}${quality.value}`
+                const isHighlighted = lastAddedChord && chordProgressions[lastAddedChord]?.includes(chordName)
+
+                return (
+                  <button
+                    key={`${root.note}-${quality.value}`}
+                    onClick={() => addChord(root.note, quality.value)}
+                    style={{
+                      width: '100%',
+                      padding: '5px 2px',
+                      marginBottom: '3px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      background: 'white',
+                      color: 'inherit',
+                      border: isHighlighted ? '3px solid #ff6b6b' : '1px solid #ccc',
+                      fontWeight: isHighlighted ? 'bold' : 'normal',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {quality.label}
+                  </button>
+                )
+              })}
             </div>
           ))}
         </div>
@@ -321,6 +416,37 @@ function App() {
 
       <div style={{ marginBottom: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
         <h3>Cush Chords (モーダル・インターチェンジ)</h3>
+
+        {/* 利用方法 */}
+        <div style={{
+          marginBottom: '15px',
+          padding: '12px',
+          background: '#e3f2fd',
+          borderRadius: '4px',
+          fontSize: '13px',
+          lineHeight: '1.6'
+        }}>
+          <strong>使い方:</strong>
+          <ol style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+            <li>モードを選択して親スケールを決定</li>
+            <li>トニック（C）から開始</li>
+            <li>コードをクリックすると、次につながりの良いコードが赤いボーダーでハイライトされます</li>
+            <li>ハイライトされたコードを選ぶと自然な進行が作れます</li>
+          </ol>
+        </div>
+
+        {/* オプション */}
+        <div style={{ marginBottom: '15px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={closedVoicing}
+              onChange={(e) => setClosedVoicing(e.target.checked)}
+              style={{ cursor: 'pointer' }}
+            />
+            <span>Closed Voicing（密集配置）</span>
+          </label>
+        </div>
 
         {/* モード選択 */}
         <div style={{ marginBottom: '15px' }}>
@@ -367,11 +493,12 @@ function App() {
               padding: '10px 20px',
               background: '#2196f3',
               color: 'white',
-              border: 'none',
+              border: lastAddedChord && (getCushProgressions(selectedMode as keyof typeof modes)[lastAddedChord]?.includes('C') || chordProgressions[lastAddedChord]?.includes('C')) ? '3px solid #ff6b6b' : 'none',
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              fontSize: '16px'
+              fontSize: '16px',
+              transition: 'all 0.2s ease'
             }}
           >
             C
@@ -384,51 +511,36 @@ function App() {
             借用コード（{modes[selectedMode as keyof typeof modes].parentKey}から）:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }}>
-            {modes[selectedMode as keyof typeof modes].cushChords.map((chord, index) => (
-              <button
-                key={index}
-                onClick={() => addChord(chord.root, chord.quality, true)}
-                style={{
-                  padding: '12px 8px',
-                  background: '#ff9800',
-                  color: 'white',
-                  border: '1px solid #f57c00',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                <div style={{ fontSize: '16px' }}>{chord.root}{chord.quality}</div>
-                <div style={{ fontSize: '10px', opacity: 0.9 }}>{chord.degree} ({chord.function})</div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+            {modes[selectedMode as keyof typeof modes].cushChords.map((chord, index) => {
+              const chordName = `${chord.root}${chord.quality}`
+              const cushProgressions = getCushProgressions(selectedMode as keyof typeof modes)
+              const isHighlighted = lastAddedChord && cushProgressions[lastAddedChord]?.includes(chordName)
 
-      <div style={{ marginBottom: '20px' }}>
-        <h3>その他の借用和音:</h3>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {borrowedChords.map((chord, index) => (
-            <button
-              key={index}
-              onClick={() => addChord(chord.root, chord.quality, true)}
-              style={{
-                padding: '10px 15px',
-                background: '#ffeb3b',
-                border: '1px solid #fbc02d',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              {chord.root}{chord.quality}
-            </button>
-          ))}
+              return (
+                <button
+                  key={index}
+                  onClick={() => addChord(chord.root, chord.quality, true)}
+                  style={{
+                    padding: '12px 8px',
+                    background: '#ff9800',
+                    color: 'white',
+                    border: isHighlighted ? '3px solid #ff6b6b' : '1px solid #f57c00',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ fontSize: '16px' }}>{chord.root}{chord.quality}</div>
+                  <div style={{ fontSize: '10px', opacity: 0.9 }}>{chord.degree} ({chord.function})</div>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
