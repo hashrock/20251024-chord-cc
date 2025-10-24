@@ -413,7 +413,7 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', paddingBottom: '280px' }}>
       <h1>コード進行作成ツール</h1>
 
       <div style={{ marginBottom: '20px' }}>
@@ -470,46 +470,65 @@ function App() {
         </div>
       </div>
 
-      {/* 鍵盤ビジュアライゼーション */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>鍵盤プレビュー</h3>
+      {/* 鍵盤ビジュアライゼーション - 画面下部に固定 */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#fff',
+        borderTop: '2px solid #333',
+        boxShadow: '0 -4px 10px rgba(0,0,0,0.1)',
+        zIndex: 1000,
+        padding: '10px 20px'
+      }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>鍵盤プレビュー</h3>
         <div style={{
-          padding: '20px',
-          border: '2px solid #ccc',
-          borderRadius: '5px',
+          padding: '10px',
           backgroundColor: '#f9f9f9',
-          overflowX: 'auto'
+          overflowX: 'auto',
+          borderRadius: '5px',
+          display: 'flex',
+          justifyContent: 'center'
         }}>
-          <div style={{ position: 'relative', height: '120px', display: 'flex', minWidth: '1050px' }}>
+          <div style={{ position: 'relative', height: '120px', width: '1050px' }}>
             {/* 白鍵 - 3オクターブ */}
-            {[3, 4, 5].map((octave) =>
-              ['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => {
+            {[3, 4, 5].map((octave, octaveIndex) =>
+              ['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note, noteIndex) => {
                 const noteWithOctave = `${note}${octave}`
                 const isPlaying = playingNotes.includes(note)
                 const isInScale = getScaleNotes(selectedMode).includes(note)
+
+                // 白鍵の位置を計算: 各白鍵は50px幅、7つで1オクターブ（350px）
+                const left = noteIndex * 50 + octaveIndex * 350
 
                 return (
                   <div
                     key={noteWithOctave}
                     style={{
+                      position: 'absolute',
+                      left: `${left}px`,
                       width: '50px',
                       height: '120px',
                       backgroundColor: isPlaying ? '#ff6b6b' : isInScale ? '#e3f2fd' : '#fff',
                       border: '2px solid #333',
                       borderRadius: '0 0 5px 5px',
                       display: 'flex',
-                      alignItems: 'flex-end',
-                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
                       paddingBottom: '5px',
                       fontSize: '9px',
                       fontWeight: 'bold',
                       color: isPlaying ? '#fff' : isInScale ? '#000' : '#666',
                       transition: 'all 0.1s ease',
                       boxShadow: isPlaying ? '0 0 15px rgba(255, 107, 107, 0.8)' : 'none',
-                      transform: isPlaying ? 'translateY(2px)' : 'none'
+                      transform: isPlaying ? 'translateY(2px)' : 'none',
+                      zIndex: 1
                     }}
                   >
-                    {note}
+                    <div style={{ fontSize: '10px' }}>{note}</div>
+                    <div style={{ fontSize: '7px', opacity: 0.5 }}>{octave}</div>
                   </div>
                 )
               })
@@ -517,11 +536,11 @@ function App() {
             {/* 黒鍵 - 3オクターブ */}
             {[3, 4, 5].map((octave, octaveIndex) =>
               [
-                { note: 'Db', offset: 35 },
-                { note: 'Eb', offset: 87 },
-                { note: 'F#', offset: 187 },
-                { note: 'Ab', offset: 239 },
-                { note: 'Bb', offset: 291 },
+                { note: 'Db', offset: 35 },   // CとDの間
+                { note: 'Eb', offset: 85 },   // DとEの間
+                { note: 'F#', offset: 185 },  // FとGの間
+                { note: 'Ab', offset: 235 },  // GとAの間
+                { note: 'Bb', offset: 285 },  // AとBの間
               ].map(({ note, offset }) => {
                 const noteWithOctave = `${note}${octave}`
                 const left = offset + (octaveIndex * 350)
@@ -541,8 +560,9 @@ function App() {
                       borderRadius: '0 0 3px 3px',
                       zIndex: 2,
                       display: 'flex',
-                      alignItems: 'flex-end',
-                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
                       paddingBottom: '3px',
                       fontSize: '7px',
                       fontWeight: 'bold',
@@ -552,19 +572,12 @@ function App() {
                       transform: isPlaying ? 'translateY(2px)' : 'none'
                     }}
                   >
-                    {note}
+                    <div style={{ fontSize: '8px' }}>{note}</div>
+                    <div style={{ fontSize: '6px', opacity: 0.7 }}>{octave}</div>
                   </div>
                 )
               })
             ).flat()}
-          </div>
-          <div style={{ marginTop: '15px', fontSize: '12px', color: '#666', textAlign: 'center' }}>
-            <span style={{ marginRight: '15px' }}>
-              ⚫ 黒：再生中
-            </span>
-            <span style={{ marginRight: '15px' }}>
-              🔵 青：選択中のスケール（{modes[selectedMode as keyof typeof modes]?.name}）
-            </span>
           </div>
         </div>
       </div>
