@@ -788,72 +788,210 @@ function App() {
             </section>
 
             <section style={{ marginBottom: '20px' }}>
-              <h3 style={{ color: '#333', marginBottom: '10px' }}>実践例：C Aeolian（Ebメジャー由来）</h3>
-              <div style={{ background: '#e3f2fd', padding: '15px', borderRadius: '4px' }}>
-                <div style={{ marginBottom: '15px' }}>
-                  <strong style={{ display: 'block', marginBottom: '8px' }}>通常のCメジャー進行：</strong>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    {['C', 'Dm7', 'Am7', 'G7'].map((chord, idx) => {
-                      const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
-                      const quality = chord.slice(root.length)
-                      return (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <button
-                            onClick={() => playSingleChord({ root, quality, isBorrowed: false })}
-                            style={{
-                              padding: '8px 16px',
-                              background: '#ffffff',
-                              color: '#000',
-                              border: '2px solid #333',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: 'bold',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                          >
-                            {chord}
-                          </button>
-                          {idx < 3 && <span>→</span>}
-                        </div>
-                      )
-                    })}
+              <h3 style={{ color: '#333', marginBottom: '10px' }}>実践例：サンプル進行集</h3>
+              <p style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+                <strong>コードをクリックすると音が聞けます！</strong>
+              </p>
+
+              {/* Aeolian */}
+              <div style={{ marginBottom: '15px' }}>
+                <h4 style={{ color: '#444', marginBottom: '8px' }}>Aeolian（エオリアン）- 暗め・マイナー的</h4>
+                {[
+                  { name: '基本進行', chords: ['C', 'Fm7', 'Gm7', 'Bb7'] },
+                  { name: 'バックドア進行', chords: ['C', 'Fm7', 'Bb9', 'C'] },
+                  { name: 'クラシックな進行', chords: ['C', 'Ab', 'Bb', 'C'] },
+                ].map((prog, progIdx) => (
+                  <div key={progIdx} style={{ marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>{prog.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {prog.chords.map((chord, idx) => {
+                        const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                        const quality = chord.slice(root.length)
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#ffffff',
+                                color: '#000',
+                                border: '2px solid #666',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              {chord}
+                            </button>
+                            {idx < prog.chords.length - 1 && <span style={{ fontSize: '12px' }}>→</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ display: 'block', marginBottom: '8px' }}>Cush Chords版（Aeolian）：</strong>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    {['C', 'Fm7', 'Gm7', 'Bb7'].map((chord, idx) => {
-                      const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
-                      const quality = chord.slice(root.length)
-                      return (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <button
-                            onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
-                            style={{
-                              padding: '8px 16px',
-                              background: '#ffffff',
-                              color: '#000',
-                              border: '2px solid #666',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: 'bold',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                          >
-                            {chord}
-                          </button>
-                          {idx < 3 && <span>→</span>}
-                        </div>
-                      )
-                    })}
+                ))}
+              </div>
+
+              {/* Dorian */}
+              <div style={{ marginBottom: '15px' }}>
+                <h4 style={{ color: '#444', marginBottom: '8px' }}>Dorian（ドリアン）- 明るめのマイナー</h4>
+                {[
+                  { name: '基本進行', chords: ['C', 'Dm7', 'F', 'C'] },
+                  { name: 'ジャズ風', chords: ['C', 'Dm7', 'Gm7', 'C'] },
+                ].map((prog, progIdx) => (
+                  <div key={progIdx} style={{ marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>{prog.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {prog.chords.map((chord, idx) => {
+                        const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                        const quality = chord.slice(root.length)
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#ffffff',
+                                color: '#000',
+                                border: '2px solid #666',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              {chord}
+                            </button>
+                            {idx < prog.chords.length - 1 && <span style={{ fontSize: '12px' }}>→</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-                <p style={{ marginTop: '10px', fontSize: '13px', color: '#666' }}>
-                  トニック（C）を維持しつつ、残りのコードをEbメジャースケールから借用しています。<br />
-                  <strong>コードをクリックすると音が聞けます！</strong>
-                </p>
+                ))}
+              </div>
+
+              {/* Phrygian */}
+              <div style={{ marginBottom: '15px' }}>
+                <h4 style={{ color: '#444', marginBottom: '8px' }}>Phrygian（フリジアン）- エキゾチック・暗い</h4>
+                {[
+                  { name: '基本進行', chords: ['C', 'Db', 'Eb', 'C'] },
+                  { name: 'スパニッシュ風', chords: ['C', 'Db', 'Ab', 'C'] },
+                ].map((prog, progIdx) => (
+                  <div key={progIdx} style={{ marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>{prog.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {prog.chords.map((chord, idx) => {
+                        const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                        const quality = chord.slice(root.length)
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#ffffff',
+                                color: '#000',
+                                border: '2px solid #666',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              {chord}
+                            </button>
+                            {idx < prog.chords.length - 1 && <span style={{ fontSize: '12px' }}>→</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Lydian */}
+              <div style={{ marginBottom: '15px' }}>
+                <h4 style={{ color: '#444', marginBottom: '8px' }}>Lydian（リディアン）- 明るく浮遊感</h4>
+                {[
+                  { name: '基本進行', chords: ['C', 'D', 'Em7', 'C'] },
+                  { name: 'ドリーミーな進行', chords: ['C', 'D', 'Bm7', 'C'] },
+                ].map((prog, progIdx) => (
+                  <div key={progIdx} style={{ marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>{prog.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {prog.chords.map((chord, idx) => {
+                        const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                        const quality = chord.slice(root.length)
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#ffffff',
+                                color: '#000',
+                                border: '2px solid #666',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              {chord}
+                            </button>
+                            {idx < prog.chords.length - 1 && <span style={{ fontSize: '12px' }}>→</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mixolydian */}
+              <div style={{ marginBottom: '15px' }}>
+                <h4 style={{ color: '#444', marginBottom: '8px' }}>Mixolydian（ミクソリディアン）- 明るくブルージー</h4>
+                {[
+                  { name: '基本進行', chords: ['C', 'F', 'Bb', 'C'] },
+                  { name: 'ブルース風', chords: ['C7', 'F7', 'Bb7', 'C7'] },
+                ].map((prog, progIdx) => (
+                  <div key={progIdx} style={{ marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>{prog.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {prog.chords.map((chord, idx) => {
+                        const root = chord.match(/^[A-G][b#]?/)?.[0] || chord
+                        const quality = chord.slice(root.length)
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              onClick={() => playSingleChord({ root, quality, isBorrowed: true })}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#ffffff',
+                                color: '#000',
+                                border: '2px solid #666',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              {chord}
+                            </button>
+                            {idx < prog.chords.length - 1 && <span style={{ fontSize: '12px' }}>→</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
