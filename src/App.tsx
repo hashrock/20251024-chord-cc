@@ -339,30 +339,42 @@ function App() {
     // noteToFrequencyを使用して周波数を計算（オクターブ4を基準）
     const rootFreq = noteToFrequency(chord.root, 4)
 
+    // 半音を追加する関数
+    const addSemitones = (freq: number, semitones: number): number => {
+      return freq * Math.pow(2, semitones / 12)
+    }
+
     let frequencies: number[] = []
 
-    // シンプルな和音構成
+    // 和音構成を音程（半音数）で定義
     if (chord.quality === 'm') {
-      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.498] // マイナー
+      // マイナー: root, minor 3rd (3半音), perfect 5th (7半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 3), addSemitones(rootFreq, 7)]
     } else if (chord.quality === '7') {
-      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.782] // 7th
+      // 7th: root, major 3rd (4半音), perfect 5th (7半音), minor 7th (10半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 4), addSemitones(rootFreq, 7), addSemitones(rootFreq, 10)]
     } else if (chord.quality === 'M7') {
-      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498, rootFreq * 1.888] // M7
+      // M7: root, major 3rd (4半音), perfect 5th (7半音), major 7th (11半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 4), addSemitones(rootFreq, 7), addSemitones(rootFreq, 11)]
     } else if (chord.quality === 'm7') {
-      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.498, rootFreq * 1.782] // m7
+      // m7: root, minor 3rd (3半音), perfect 5th (7半音), minor 7th (10半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 3), addSemitones(rootFreq, 7), addSemitones(rootFreq, 10)]
     } else if (chord.quality === 'dim') {
-      frequencies = [rootFreq, rootFreq * 1.189, rootFreq * 1.414] // dim
+      // dim: root, minor 3rd (3半音), diminished 5th (6半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 3), addSemitones(rootFreq, 6)]
     } else if (chord.quality === 'aug') {
-      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.587] // aug
+      // aug: root, major 3rd (4半音), augmented 5th (8半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 4), addSemitones(rootFreq, 8)]
     } else {
-      frequencies = [rootFreq, rootFreq * 1.26, rootFreq * 1.498] // メジャー
+      // メジャー: root, major 3rd (4半音), perfect 5th (7半音)
+      frequencies = [rootFreq, addSemitones(rootFreq, 4), addSemitones(rootFreq, 7)]
     }
 
     // Closed voicing: 前のコードから各音が最小限の距離で移動する（ボイスリーディング）
     if (closedVoicing && lastChordFrequencies.length > 0) {
-      // 音域の範囲制限（C3 = 130.81 Hz ~ C6 = 1046.50 Hz）
-      const minFreq = 130.81
-      const maxFreq = 1046.50
+      // 音域の範囲制限（C3 ~ C6）
+      const minFreq = noteToFrequency('C', 3)
+      const maxFreq = noteToFrequency('C', 6)
 
       // 各音を前のコードの対応する音に最も近いオクターブに配置
       frequencies = frequencies.map((freq, index) => {
