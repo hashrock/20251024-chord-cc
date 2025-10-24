@@ -14,6 +14,7 @@ function App() {
   const [lastAddedChord, setLastAddedChord] = useState<string>('')
   const [closedVoicing, setClosedVoicing] = useState(false)
   const [lastChordFrequencies, setLastChordFrequencies] = useState<number[]>([])
+  const [waveformType, setWaveformType] = useState<OscillatorType>('sine')
 
   // 音名順に並べる
   const roots = [
@@ -208,7 +209,7 @@ function App() {
     const bassOscillator = audioContext.createOscillator()
     const bassGain = audioContext.createGain()
 
-    bassOscillator.type = 'sine'
+    bassOscillator.type = waveformType
     bassOscillator.frequency.value = bassFreq
     bassGain.gain.setValueAtTime(0.2, startTime)
     bassGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
@@ -223,7 +224,7 @@ function App() {
       const oscillator = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
 
-      oscillator.type = 'sine'
+      oscillator.type = waveformType
       oscillator.frequency.value = freq
 
       gainNode.gain.setValueAtTime(0.12, startTime)
@@ -276,7 +277,7 @@ function App() {
         const oscillator = audioContext.createOscillator()
         const gainNode = audioContext.createGain()
 
-        oscillator.type = 'sine'
+        oscillator.type = waveformType
         oscillator.frequency.value = freq
 
         gainNode.gain.setValueAtTime(0.2, startTime)
@@ -529,6 +530,25 @@ function App() {
               リセット
             </button>
           )}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontWeight: 'bold' }}>波形:</span>
+            <select
+              value={waveformType}
+              onChange={(e) => setWaveformType(e.target.value as OscillatorType)}
+              style={{
+                padding: '6px 12px',
+                fontSize: '13px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="sine">正弦波 (Sine)</option>
+              <option value="triangle">三角波 (Triangle)</option>
+              <option value="square">矩形波 (Square)</option>
+              <option value="sawtooth">のこぎり波 (Sawtooth)</option>
+            </select>
+          </label>
         </div>
 
         {/* モード選択 */}
