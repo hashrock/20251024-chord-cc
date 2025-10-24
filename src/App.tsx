@@ -262,13 +262,13 @@ function App() {
     const audioContext = new AudioContext()
 
     for (let i = 0; i < chords.length; i++) {
-      await playChord(audioContext, chords[i], i)
+      await playChord(audioContext, chords[i])
     }
 
     setIsPlaying(false)
   }
 
-  const playChord = (audioContext: AudioContext, chord: Chord, index: number) => {
+  const playChord = (audioContext: AudioContext, chord: Chord) => {
     return new Promise<void>((resolve) => {
       const frequencies = getChordFrequencies(chord)
       const startTime = audioContext.currentTime
